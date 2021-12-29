@@ -68,7 +68,7 @@ I was thinking of making it more RESTful by adding a post,put,patch,delete.
 Good luck!
 
 
-## Development dairy
+## Development diary
 
 Creating the database was very fun, I like superheroes. The dataset is based on requirements: it has to have multiple companies(person from company A can't see company B). It needs to have a hierarchy of at least two levels, so we can test looking up and down the reports.
 
