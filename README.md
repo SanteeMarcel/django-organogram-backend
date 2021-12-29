@@ -61,7 +61,7 @@ I tried following the testing insctructions as close as I could, but could not u
 
 #set up an openAPI/Swagger endpoint
 
-#add logging to the application
+#add logging to the application(log every REST call)
 
 2) Any cool feature ideas that you could add as well with minimal effort?
 
