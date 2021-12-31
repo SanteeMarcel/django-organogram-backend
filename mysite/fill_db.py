@@ -34,5 +34,8 @@ for user in users:
     get_token_from_user[user] = Token.objects.create(user=user)
 
 print(get_token_from_user[spiderman])
-
+# 5d7017c51a6cf8eff027bb34e012df827dea40ca
+# token likely won't be the same for you! This comment is for me testing locally
 print(get_token_from_user[ironman])
+# f1d0e7f91c394094bdb2351444fbaa2c6e8ce9fc
+# Same as above!

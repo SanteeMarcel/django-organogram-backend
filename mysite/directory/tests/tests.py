@@ -1,8 +1,7 @@
 from django.test import TestCase
-from rest_framework import response
 from rest_framework.test import APIClient
 from directory.models import User, Company
-from directory.api.views import UsersViewSet
+from django.urls import reverse
 
 """
 To make a test API call over an authenticated API endpoint, follow
@@ -18,6 +17,8 @@ user = ...
 client.force_authenticate(user=self.user)
 response = client.get(reverse('{REVERSED_URL}'))
 ```
+
+Use mysite/fill_db_flowchart.png to understand the hierarchy
 
 """
 api_client = APIClient()
@@ -55,7 +56,7 @@ class UsersViewSetAPICase(TestCase):
         
         non_auth_client = APIClient()
 
-        response = non_auth_client.get("/api/")
+        response = non_auth_client.get(reverse("users-list"))
 
         assert response.status_code == 401
         
@@ -65,31 +66,109 @@ class UsersViewSetAPICase(TestCase):
 
         api_client.force_authenticate(user=user)
 
-        response = api_client.get("/api/users")
+        response = api_client.get(reverse("users-list"))
 
         employees = response.data
 
         for employee in employees:
-            comp = Company.objects.filter(id=employee["company"])
-            assert comp[0] == user.company
+            print(employee)
+            comp = Company.objects.filter(id=employee["company"]).first()
+            assert comp == user.company
 
         user: User = self.batman
 
         api_client.force_authenticate(user=user)
 
-        response = api_client.get("/api/users")
+        response = api_client.get(reverse("users-list"))
 
         employees = response.data
 
         for employee in employees:
-            comp = Company.objects.filter(id=employee["company"])
-            assert comp[0] == user.company
+            comp = Company.objects.filter(id=employee["company"]).first()
+            assert comp == user.company
 
-    def test_recursive_hierarchy(self):
+    def test_should_show_everyone_below(self):
         
         user: User = self.ironman
         api_client.force_authenticate(user=user)
+        url = reverse("users-reports", kwargs={"pk": user.pk})
 
-        # response = api_client.get("/api/users/2/reports")
+        response = api_client.get(url)
 
-        print(response)
+        employees = response.data
+
+        assert len(employees) == 3
+
+        for employee in employees:
+            assert employee["first_name"] in ("Peter", "Harold", "Sam")
+
+    def test_should_show_everyone_above(self):
+        user: User = self.spiderman
+        api_client.force_authenticate(user=user)
+        url = reverse("users-managers", kwargs={"pk": user.pk})
+
+        response = api_client.get(url)
+
+        employees = response.data
+
+        assert len(employees) == 2
+
+        for employee in employees:
+            assert employee["first_name"] in ("Tony", "Harold")
+
+    def test_should_show_users_with_manager(self):
+        user: User = self.spiderman
+        api_client.force_authenticate(user=user)
+        url = reverse("users-list") + "?has_manager=true"
+        
+        response = api_client.get(url)
+
+        employees = response.data
+
+        assert len(employees) == 3
+
+        # only Tony has no managers
+        for employee in employees:
+            assert employee["first_name"] != "Tony"
+
+    def test_should_show_users_with_no_manager(self):
+        user: User = self.ironman
+        api_client.force_authenticate(user=user)
+        url = reverse("users-list") + "?has_manager=false"
+
+        response = api_client.get(url)
+
+        employees = response.data
+
+        assert len(employees) == 1
+
+        assert employees[0]["first_name"] == "Tony"
+
+    def test_should_show_users_who_are_manager(self):
+        user: User = self.ironman
+        api_client.force_authenticate(user=user)
+        url = reverse("users-list") + "?is_manager=true"
+
+        response = api_client.get(url)
+
+        employees = response.data
+        assert len(employees) == 2
+        # The people have reportees
+        for employee in employees:
+            assert employee["first_name"] in ("Tony", "Harold")
+
+
+    def test_should_show_users_who_are_not_manager(self):
+        user: User = self.ironman
+        api_client.force_authenticate(user=user)
+        url = reverse("users-list") + "?is_manager=false"
+
+        response = api_client.get(url)
+
+        employees = response.data
+
+
+        assert len(employees) == 2
+        # nobody reports to them
+        for employee in employees:
+            assert employee["first_name"] in ("Sam", "Peter")

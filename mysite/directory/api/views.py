@@ -1,17 +1,22 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from directory.api.filtersets import UsersFilterSet
 from directory.api.serializers import UserSerializer
 from directory.models import User
 from typing import List, Set
+from directory.api.filtersets import HasManagerFilter, IsManagerFilter, UsersFilterSet
 
 class UsersViewSet(viewsets.ModelViewSet):
     """
     Endpoint for returning User data.
     """
-    filterset_class = UsersFilterSet
+    # filterset_class = UsersFilterSet
     serializer_class = UserSerializer
+    filter_backends = [
+        UsersFilterSet,
+        HasManagerFilter,
+        IsManagerFilter
+    ]
 
     @action(detail=True, methods=['get'])
     def reports(self, request, pk):
@@ -64,6 +69,8 @@ def _reportees(user: User, desired_reportee: User) -> bool:
     # recursion
     return _reportees(user.reports_to, desired_reportee)
 
+#set is used due to overhead of using dynamic lists
+#a ordered dict would ensure ordered results
 def managers(user: User) -> List[User]:
 
     employee = user

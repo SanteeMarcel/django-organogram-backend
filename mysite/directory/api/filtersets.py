@@ -1,32 +1,37 @@
 from django.db.models.query import QuerySet
-from django_filters import rest_framework as filters, BooleanFilter
 from django.contrib.auth import get_user_model
-
+from rest_framework import filters
 
 User = get_user_model()
 
+class UsersFilterSet(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset: QuerySet, view):
+        return queryset.defer("email", "is_active")
 
-class UsersFilterSet(filters.FilterSet):
-    strict = True
-    has_manager = BooleanFilter(field_name="reports_to", method="verify_reports_up")
-    is_manager = BooleanFilter(field_name="reports_to", method="find_reportees")
-
-    class Meta:
-        model = User
-        fields = [
-            'reports_to'
-        ]
-
-    def find_reportees(self, queryset: QuerySet, name, value):
-        if value:
-            queryset = queryset.filter()
-            return queryset
-        queryset = queryset.filter()
+class HasManagerFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset: QuerySet, view):
+        has_manager = request.query_params.get("has_manager", None)
+        if has_manager in ("true", "false"):
+            if has_manager  == "true":
+                return queryset.filter(reports_to_id__isnull=False)
+            else:
+                return queryset.filter(reports_to_id__isnull=True)
+            
         return queryset
 
-    def verify_reports_up(self, queryset: QuerySet, name, value):
-        if value:
-            queryset = queryset.filter(reports_to_id__isnull=False)
-            return queryset
-        queryset = queryset.filter(reports_to_id__isnull=True)
+class IsManagerFilter(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset: QuerySet, view):
+        is_manager = request.query_params.get("is_manager", None)
+        if is_manager in ("true", "false"):
+
+            users = queryset.all()
+            managers_ids = set()
+            for user in users:
+                if user.reports_to:
+                    managers_ids.add(user.reports_to.id)
+
+            if is_manager  == "true":
+                return queryset.filter(pk__in=managers_ids)
+            else:
+                return queryset.exclude(pk__in=managers_ids)
         return queryset

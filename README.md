@@ -31,6 +31,8 @@ To add some data, you can use `create_user`.
 
 You will likely need to add more data to the DB to properly implement the requirements for the tasks below. Creating a script would *probably* be useful. :wink:
 
+I added my own db using mysite/fill_db.py and you can visualize the hierarchy at mysite/fill_db_flowchart.png
+
 ### Tasks
 1) Make sure that for the `/users` endpoint, that only users for the calling user's company are shown.
 
@@ -38,26 +40,34 @@ This is done overriding the get_queryset.
 
 2) Update the `reports` action in `UsersViewSet` to return all reports _down_ the reporting tree, recursively.
 
-This is very inneficient, it's a tree struture with pointers only pointing up. A better way would be having a list of reportees in every user, therefore pointing down. This raises two concerns: 1) We would have to ensure consistency, every arrow pointing up must have one exactly like it pointing down(and vice-versa). 2) Recursive functions can cause call stack overflow at scale either way.
+This is very inneficient, it's a tree struture with pointers only pointing up. A better way would be having a list of reportees in every user, therefore pointing down. This raises a concerns: We would have to ensure consistency, every arrow pointing up must have one exactly like it pointing down(and vice-versa). 
+
+Recursive functions can cause call stack overflow at scale either way.
 
 3) Add another action, similar to `reports`, called `managers`, that does the inverse of `reports`. It should return all users _up_ the reporting tree from the designated user.
 
-You just have to follow the trail of pointers up, since every user only reports to one person. This is efficient. I had a little trouble questioning wheter or not I should convert the lists and sets to queryset, but that would de an uneeded overhead, there's likely a way to do this using querysets directly.
+You just have to follow the trail of pointers up, since every user only reports to one person. This is efficient. 
 
 If the user structure was too big, passing the entire user data would not be efficient, and it would be better to pass by primary key and use it to query the managers.
+
+I used a set to add all managers, this cannot guarantee order, if the order is important, a ordered dict would be better, or maybe an dynamic array
 
 4) Add a [filter](https://django-filter.readthedocs.io/en/stable/guide/usage.html#the-filter) for the `/users` endpoint that returns only users that have at least 1 person reporting to them (AKA, filter out users who are/are not managers). Name this filter `is_manager`. It should handle both `true`/`false` values.
 
 5) Add another for the `/users` endpoint that returns only users that _do not_ have a manager. Name this filter `has_manager`. It should handle both `true`/`false` values.
 
+
+I had a little trouble with understanding filtering, I endup re-doing the entire filterset file to a way I could understand, sorry if that wasn't allowed. Then I had to implement it again because I needed to filter out is_active and email, whoops!
+
+
 6) Add tests. A `mysite/directory/tests/tests.py` file is configured for you. Add tests there. To run the tests, open a second shell and use the `docker-compose exec directory bash` command to enter the running container. Then run the tests with `./manage.py test -v 2`.
 
-I tried following the testing insctructions as close as I could, but could not use the reversed function, I also feel like the authentication itself could be tested instead of forced.
+I tested all the aforementioned bullet points, a lot more tests could be done. I decided to test by business rules.
 
 ### Follow-up Questions
 1) Provide a few bullet points of optimizations or improvements you would make if given more time.
 
-#Rework the entire authentication principles, they are very bad for security and not very different from storing plain text passwords.
+#Rework the entire authentication system, they are very bad for security and not very different from storing plain text passwords. There are many ways to do this. I would use a simple refresh token endpoint and a token for sessions. But we could spice things up with things like OAuth 2.0.
 
 #set up an openAPI/Swagger endpoint
 
@@ -75,3 +85,7 @@ Creating the database was very fun, I like superheroes. The dataset is based on 
 I had to chose to return 204 http status when it's returning an empty list, many applications return 200.
 
 I'm assuming every user only reports to a single person or to no one.
+
+I also had a lot of trouble understading the urls that I should reverse, so I added django_extensions to use show_urls, very useful!
+
+Why is not returning username? Why is it not filtering email and is_active? dang it
