@@ -71,18 +71,18 @@ I tested all the aforementioned bullet points, a lot more tests could be done. I
 
 #set up an openAPI/Swagger endpoint
 
+#add logging to the application(log every REST call)
+
 2) Any cool feature ideas that you could add as well with minimal effort?
 
 I was thinking of making it more RESTful by adding a post,put,patch,delete. 
 
-Good luck!
 
-
-## Development dairy
+## Development diary
 
 Creating the database was very fun, I like superheroes. The dataset is based on requirements: it has to have multiple companies(person from company A can't see company B). It needs to have a hierarchy of at least two levels, so we can test looking up and down the reports.
 
-I had to chose to return 204 http status when it's returning an empty list, many applications return 200.
+I had to chose to return 204 http status when it's returning an empty list, many applications return 200 even when empty.
 
 I'm assuming every user only reports to a single person or to no one.
 
