@@ -4,20 +4,23 @@ from rest_framework import filters
 
 User = get_user_model()
 
+
 class UsersFilterSet(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset: QuerySet, view):
         return queryset.defer("email", "is_active")
+
 
 class HasManagerFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset: QuerySet, view):
         has_manager = request.query_params.get("has_manager", None)
         if has_manager in ("true", "false"):
-            if has_manager  == "true":
+            if has_manager == "true":
                 return queryset.filter(reports_to_id__isnull=False)
             else:
                 return queryset.filter(reports_to_id__isnull=True)
-            
+
         return queryset
+
 
 class IsManagerFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset: QuerySet, view):
@@ -30,7 +33,7 @@ class IsManagerFilter(filters.BaseFilterBackend):
                 if user.reports_to:
                     managers_ids.add(user.reports_to.id)
 
-            if is_manager  == "true":
+            if is_manager == "true":
                 return queryset.filter(pk__in=managers_ids)
             else:
                 return queryset.exclude(pk__in=managers_ids)

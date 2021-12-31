@@ -6,11 +6,12 @@ from directory.models import User
 from typing import List, Set
 from directory.api.filtersets import HasManagerFilter, IsManagerFilter, UsersFilterSet
 
+
 class UsersViewSet(viewsets.ModelViewSet):
     """
     Endpoint for returning User data.
     """
-    # filterset_class = UsersFilterSet
+
     serializer_class = UserSerializer
     filter_backends = [
         UsersFilterSet,
@@ -48,6 +49,8 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 # Recursive function
 # VERY inefficient, it would be better have a pointer pointing down
+
+
 def reportees(user: User) -> Set[User]:
 
     users = User.objects.filter(company=user.company)
@@ -57,8 +60,9 @@ def reportees(user: User) -> Set[User]:
     for employee in users:
         if _reportees(employee, user):
             total_reportees.add(employee)
-    
+
     return total_reportees
+
 
 def _reportees(user: User, desired_reportee: User) -> bool:
     # base cases
@@ -69,8 +73,10 @@ def _reportees(user: User, desired_reportee: User) -> bool:
     # recursion
     return _reportees(user.reports_to, desired_reportee)
 
-#set is used due to overhead of using dynamic lists
-#a ordered dict would ensure ordered results
+# set is used due to overhead of using dynamic lists
+# a ordered dict would ensure ordered results
+
+
 def managers(user: User) -> List[User]:
 
     employee = user
