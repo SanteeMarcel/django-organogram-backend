@@ -1,6 +1,8 @@
-build:
-  docker:
-    web: Dockerfile
+services:
+  directory:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: directory
     volumes:
     - .:/opt/app
