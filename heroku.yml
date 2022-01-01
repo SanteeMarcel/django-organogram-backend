@@ -1,17 +1,5 @@
-services:
-  directory:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: directory
-    volumes:
-    - .:/opt/app
-    working_dir: /opt/app
-    ports:
-      - 8001:8001
-    tty: true
-    command: bash -c "python mysite/manage.py migrate && python mysite/manage.py runserver 0.0.0.0:8001"
-    environment:
-      DOCKER_DB_HOST: db
-      DOCKER_REDIS_HOST: redis
-      DOCKER_HOST: directory
+build:
+  docker:
+    web: Dockerfile
+run:
+  web: bash -c "python mysite/manage.py migrate && python mysite/manage.py runserver 0.0.0.0:8001"
