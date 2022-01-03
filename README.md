@@ -88,3 +88,5 @@ I had to chose to return 204 http status when it's returning an empty list, many
 I'm assuming every user only reports to a single person or to no one.
 
 I also had a lot of trouble understading the urls that I should reverse, so I added django_extensions to use show_urls, very useful!
+
+I only used type hinting occasionally to improve syntax highlighting and auto completion at the IDE.
